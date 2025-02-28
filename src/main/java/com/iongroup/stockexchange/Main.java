@@ -66,11 +66,15 @@ class Order implements Runnable {
         }
     }
 
-    void matchOrder() {
+    synchronized void matchOrder() {
         // if the current order is BUY -> we will try to match it to a sell order
         if(this.orderType == OrderType.BUY) {
+            if(sellOrders.isEmpty()) {
+                System.out.println("Empty SellOrder queue");
+                return;
+            }
             for(Order sellOrder: sellOrders) {
-                if(this.qty == sellOrder.qty && this.stock.pricePerShare == sellOrder.stock.pricePerShare) {
+                if(sellOrder != null && this.qty == sellOrder.qty && this.stock.pricePerShare == sellOrder.stock.pricePerShare) {
                     System.out.println("Matching order: " + this.id + " with " + sellOrder.id);
                     // match found -> both the orders are executed
                     this.executed = true;
@@ -81,8 +85,12 @@ class Order implements Runnable {
         }
 
         if(this.orderType == OrderType.SELL) {
+            if(buyOrders.isEmpty()) {
+                System.out.println("Empty BuyOrder queue");
+                return;
+            }
             for(Order buyOrder: buyOrders) {
-                if(this.qty == buyOrder.qty && this.stock.pricePerShare == buyOrder.stock.pricePerShare) {
+                if(buyOrder != null && this.qty == buyOrder.qty && this.stock.pricePerShare == buyOrder.stock.pricePerShare) {
                     System.out.println("Matching order: " + this.id + " with " + buyOrder.id);
                     // match found -> both the orders are executed
                     this.executed = true;
@@ -143,10 +151,10 @@ public class Main {
         ));
 
         return new ArrayList<>(Arrays.asList(
-                new Order(stocks.get(1), 1, OrderType.BUY),
+                new Order(stocks.get(1), 2, OrderType.BUY),
                 new Order(stocks.get(0), 1, OrderType.BUY),
 
-                new Order(stocks.get(1), 1, OrderType.SELL),
+                new Order(stocks.get(1), 2, OrderType.SELL),
                 new Order(stocks.get(0), 1, OrderType.SELL)
         ));
     }
